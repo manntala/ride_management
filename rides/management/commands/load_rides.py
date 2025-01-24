@@ -12,7 +12,6 @@ class Command(BaseCommand):
                 rider = User.objects.get(id_user=row['id_rider'])
                 driver = User.objects.get(id_user=row['id_driver'])
                 Ride.objects.create(
-                    id_ride=row['id_ride'],
                     status=row['status'],
                     id_rider=rider,
                     id_driver=driver,

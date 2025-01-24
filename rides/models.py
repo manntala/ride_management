@@ -14,10 +14,8 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15)
 
-    # REQUIRED_FIELDS = ['email', 'role']
-
     def __str__(self):
-        return self.email
+        return f"{self.email} {self.role}" 
 
 class Ride(models.Model):
     STATUS_CHOICES = (
@@ -34,6 +32,9 @@ class Ride(models.Model):
     dropoff_latitude = models.FloatField()
     dropoff_longitude = models.FloatField()
     pickup_time = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.id_rider.email} {self.status}"
 
 class RideEvent(models.Model):
     id_ride_event = models.AutoField(primary_key=True)
