@@ -1,0 +1,11 @@
+role,first_name,last_name,email,phone_number
+rider,John,Doe,john.doe@example.com,1234567890
+driver,Jane,Smith,jane.smith@example.com,987654321
+rider,Alice,Johnson,alice.johnson@example.com,1112223333
+driver,Bob,Brown,bob.brown@example.com,4445556666
+rider,Charlie,Davis,charlie.davis@example.com,7778889999
+driver,David,Wilson,david.wilson@example.com,1112222
+rider,Eve,Miller,eve.miller@example.com,3334445555
+driver,Frank,Moore,frank.moore@example.com,6667778888
+rider,Grace,Taylor,grace.taylor@example.com,9990001111
+driver,Hank,Anderson,hank.anderson@example.com,2223334444
