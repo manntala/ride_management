@@ -4,7 +4,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from django.db.models import Prefetch, F
 from django.utils.timezone import now
-from datetime import timedelta
+from django.utils.timezone import make_aware
+from datetime import datetime
 from .models import User, Ride, RideEvent
 from .serializers import RideSerializer, UserSerializer, RideEventSerializer
 from .permissions import IsAdminUser
@@ -16,13 +17,14 @@ class RideViewSet(viewsets.ModelViewSet):
     queryset = Ride.objects.prefetch_related(
         'id_rider',
         'id_driver',
-        Prefetch('ride_events', queryset=RideEvent.objects.filter(created_at__gte='2022-01-01'))
+        Prefetch('ride_events', queryset=RideEvent.objects.filter(created_at__gte=make_aware(datetime(2022, 1, 1))))
     ).all()
     serializer_class = RideSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = RideFilter
     ordering_fields = ['pickup_time', 'pickup_latitude', 'pickup_longitude']
+    ordering = ['pickup_time']
 
     def get_queryset(self):
         queryset = self.queryset
