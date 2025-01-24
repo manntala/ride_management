@@ -29,7 +29,7 @@ class RideViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = self.queryset
         status = self.request.query_params.get('status', None)
-        email = self.request.query_params.get('rider_email', None)
+        email = self.request.query_params.get('email', None)
         sort_by_distance = self.request.query_params.get('sort_by_distance', None)
 
         logging.debug(f"Filtering rides with status: {status}, email: {email}, sort_by_distance: {sort_by_distance}")
