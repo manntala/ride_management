@@ -8,50 +8,84 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Ride',
+            name="Ride",
             fields=[
-                ('id_ride', models.AutoField(primary_key=True, serialize=False)),
-                ('status', models.CharField(choices=[('en-route', 'En-route'), ('pickup', 'Pickup'), ('dropoff', 'Dropoff')], max_length=20)),
-                ('pickup_latitude', models.FloatField()),
-                ('pickup_longitude', models.FloatField()),
-                ('dropoff_latitude', models.FloatField()),
-                ('dropoff_longitude', models.FloatField()),
-                ('pickup_time', models.DateTimeField()),
+                ("id_ride", models.AutoField(primary_key=True, serialize=False)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("en-route", "En-route"),
+                            ("pickup", "Pickup"),
+                            ("dropoff", "Dropoff"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("pickup_latitude", models.FloatField()),
+                ("pickup_longitude", models.FloatField()),
+                ("dropoff_latitude", models.FloatField()),
+                ("dropoff_longitude", models.FloatField()),
+                ("pickup_time", models.DateTimeField()),
             ],
         ),
         migrations.CreateModel(
-            name='User',
+            name="User",
             fields=[
-                ('id_user', models.AutoField(primary_key=True, serialize=False)),
-                ('role', models.CharField(choices=[('admin', 'Admin'), ('rider', 'Rider'), ('driver', 'Driver')], max_length=10)),
-                ('first_name', models.CharField(max_length=50)),
-                ('last_name', models.CharField(max_length=50)),
-                ('email', models.EmailField(max_length=254, unique=True)),
-                ('phone_number', models.CharField(max_length=15)),
+                ("id_user", models.AutoField(primary_key=True, serialize=False)),
+                (
+                    "role",
+                    models.CharField(
+                        choices=[
+                            ("admin", "Admin"),
+                            ("rider", "Rider"),
+                            ("driver", "Driver"),
+                        ],
+                        max_length=10,
+                    ),
+                ),
+                ("first_name", models.CharField(max_length=50)),
+                ("last_name", models.CharField(max_length=50)),
+                ("email", models.EmailField(max_length=254, unique=True)),
+                ("phone_number", models.CharField(max_length=15)),
             ],
         ),
         migrations.CreateModel(
-            name='RideEvent',
+            name="RideEvent",
             fields=[
-                ('id_ride_event', models.AutoField(primary_key=True, serialize=False)),
-                ('description', models.TextField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('id_ride', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='ride_events', to='rides.ride')),
+                ("id_ride_event", models.AutoField(primary_key=True, serialize=False)),
+                ("description", models.TextField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "id_ride",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="ride_events",
+                        to="rides.ride",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='ride',
-            name='id_driver',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rides_as_driver', to='rides.user'),
+            model_name="ride",
+            name="id_driver",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="rides_as_driver",
+                to="rides.user",
+            ),
         ),
         migrations.AddField(
-            model_name='ride',
-            name='id_rider',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rides_as_rider', to='rides.user'),
+            model_name="ride",
+            name="id_rider",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="rides_as_rider",
+                to="rides.user",
+            ),
         ),
     ]
