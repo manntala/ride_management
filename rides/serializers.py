@@ -12,13 +12,13 @@ class UserSerializer(serializers.ModelSerializer):
 class RideEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = RideEvent
-        fields = ["id_ride_event", "description", "created_at"]
+        fields = ["id_ride_event", "id_ride", "description", "created_at"]
 
 
 class RideSerializer(serializers.ModelSerializer):
     id_rider = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     id_driver = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    ride_events = RideEventSerializer(many=True, required=False)
+    ride_events = RideEventSerializer(many=True, read_only=True)
     todays_ride_events = serializers.SerializerMethodField()
 
     class Meta:

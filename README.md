@@ -44,6 +44,12 @@ docker-compose exec web python manage.py test
 - `POST /api/token/`: Obtain JWT token
 - `POST /api/token/refresh/`: Refresh JWT token
 
+Sample Payload:
+{
+    "username": "manny_talaroc",
+    "password": 1234
+}
+
 ### Users
 
 - `GET /api/users/`: List all users
@@ -51,6 +57,15 @@ docker-compose exec web python manage.py test
 - `GET /api/users/{id}/`: Retrieve a user
 - `PUT /api/users/{id}/`: Update a user
 - `DELETE /api/users/{id}/`: Delete a user
+
+Sample Payload:
+{
+    "role": "admin",
+    "first_name": "manny",
+    "last_name": "talaroc",
+    "email": "manny.talaroc@email.com",
+    "phone_number": "121212"
+}
 
 ### Rides
 
@@ -60,10 +75,42 @@ docker-compose exec web python manage.py test
 - `PUT /api/rides/{id}/`: Update a ride
 - `DELETE /api/rides/{id}/`: Delete a ride
 
+Sample Payload:
+{
+    "id_rider": 1,
+    "id_driver": 2,
+    "pickup_time": "2023-10-10T10:00:00Z",
+    "pickup_latitude": 37.7749,
+    "pickup_longitude": -122.4194,
+    "dropoff_latitude": 37.7849,
+    "dropoff_longitude": -122.4294,
+    "status": "en-route",
+    "ride_events": [
+        {
+            "event_type": "pickup",
+            "created_at": "2023-10-10T10:05:00Z",
+            "description": "Rider picked up"
+        },
+        {
+            "event_type": "dropoff",
+            "created_at": "2023-10-10T10:30:00Z",
+            "description": "Rider dropped off"
+        }
+    ]
+}
+
 ### Ride Events
 
-- `GET /api/rideevents/`: List all ride events
-- `POST /api/rideevents/`: Create a new ride event
-- `GET /api/rideevents/{id}/`: Retrieve a ride event
-- `PUT /api/rideevents/{id}/`: Update a ride event
-- `DELETE /api/rideevents/{id}/`: Delete a ride event
+- `GET /api/ride-events/`: List all ride events
+- `POST /api/ride-events/`: Create a new ride event
+- `GET /api/ride-events/{id}/`: Retrieve a ride event
+- `PUT /api/ride-events/{id}/`: Update a ride event
+- `DELETE /api/ride-events/{id}/`: Delete a ride event
+
+Sample Payload:
+{
+    "id_ride_event": 4,
+    "id_ride": 2,
+    "description": "Jane Smith Pickup test",
+    "created_at": "2025-01-25T13:27:34.467373Z"
+}
