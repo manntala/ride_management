@@ -24,17 +24,17 @@ This is a simple ride management app built with Django and Docker.
 git clone https://github.com/manntala/ride_management.git
 cd ride_management
 
-### 2. Build and run Docker containers
+2. Build and run Docker containers
 docker-compose up --build
 
-### 3. Load initial data
+3. Load initial data
 docker-compose exec web python manage.py load_users
 docker-compose exec web python manage.py load_rides
 
-### 4. Access the application
+4. Access the application
 http://localhost:8000
 
-### 5. Running the Tests
+5. Running the Tests
 docker-compose exec web python manage.py test
 
 ## API Endpoints
