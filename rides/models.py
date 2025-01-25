@@ -40,7 +40,7 @@ class Ride(models.Model):
     pickup_time = models.DateTimeField()
 
     def __str__(self):
-        return f"{self.id_rider.email} {self.status}"
+        return f"{self.id_rider.email}"
 
 
 class RideEvent(models.Model):
@@ -53,3 +53,6 @@ class RideEvent(models.Model):
 
     class Meta:
         ordering = ["created_at"]
+
+    def __str__(self):
+        return f"{self.id_ride.id_rider.email}"
