@@ -36,6 +36,7 @@ class RideSerializer(serializers.ModelSerializer):
             "dropoff_latitude",
             "dropoff_longitude",
             "pickup_time",
+            "dropoff_time",
             "ride_events",
             "todays_ride_events",
             "rider_username",

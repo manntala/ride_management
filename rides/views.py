@@ -1,5 +1,8 @@
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -17,10 +20,8 @@ from .models import User, Ride, RideEvent
 from .serializers import RideSerializer, UserSerializer, RideEventSerializer
 from .permissions import IsAdminUser
 from .filters import RideFilter
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter
+
 import logging
-from rest_framework import viewsets
 
 
 class RideViewSet(viewsets.ModelViewSet):
@@ -29,7 +30,7 @@ class RideViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsAdminUser]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = RideFilter
-    ordering_fields = ["pickup_time", "pickup_latitude", "pickup_longitude"]
+    ordering_fields = ['pickup_latitude', 'pickup_longitude', 'dropoff_latitude', 'dropoff_longitude', 'pickup_time', 'status']
     ordering = ["pickup_time"]
 
     def get_queryset(self):
@@ -58,12 +59,18 @@ class RideViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(id_rider__email=email)
 
         if sort_by_distance:
-            latitude = float(self.request.query_params.get("latitude", 0))
-            longitude = float(self.request.query_params.get("longitude", 0))
-            user_location = Point(longitude, latitude, srid=4326)
-            queryset = queryset.annotate(
-                distance=Distance("pickup_location", user_location)
-            ).order_by("distance")
+            try:
+                latitude = float(self.request.query_params.get("latitude", 0))
+                longitude = float(self.request.query_params.get("longitude", 0))
+                user_location = Point(longitude, latitude, srid=4326)
+                queryset = queryset.annotate(
+                    distance=Distance(
+                        Point(F('pickup_longitude'), F('pickup_latitude'), srid=4326), 
+                        user_location
+                    )
+                ).order_by("distance")
+            except (TypeError, ValueError) as e:
+                logging.error(f"Invalid latitude or longitude values: {e}")
 
         logging.debug(f"Resulting queryset: {queryset.query}")
         return queryset
@@ -86,6 +93,7 @@ class RideViewSet(viewsets.ModelViewSet):
             RideEvent.objects.create(id_ride=instance, description=description)
 
             if new_status == "dropoff":
+                instance.dropoff_time = now()  # Set the dropoff_time to the current time
                 instance.distance = instance.pickup_location.distance(
                     instance.dropoff_location
                 )

@@ -39,6 +39,7 @@ class Ride(models.Model):
     dropoff_latitude = models.FloatField()
     dropoff_longitude = models.FloatField()
     pickup_time = models.DateTimeField()
+    dropoff_time = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if self.pickup_latitude and self.pickup_longitude:

@@ -29,12 +29,12 @@ docker-compose up --build
 
 3. Load initial data
 docker-compose exec web python manage.py load_users
-docker-compose exec web python manage.py load_rides
+docker-compose exec web python manage.py load_rides # as needed but not important
 
 4. Access the application
 http://localhost:8000
 
-5. Running the Tests
+5. Running the Tests/Unit tests
 docker-compose exec web python manage.py test
 
 ## API Endpoints
@@ -114,3 +114,34 @@ Sample Payload:
     "description": "Jane Smith Pickup test",
     "created_at": "2025-01-25T13:27:34.467373Z"
 }
+
+
+### SQL Query:
+NOTE! 
+psql should be installed first!
+For WSL2: sudo apt install postgresql-client
+
+Command to access
+docker exec -it ride_management-db-1 psql -U user -d ride_management
+
+## Reporting
+
+### Trips Longer Than 1 Hour by Month and Driver
+
+To generate a report of trips that took more than 1 hour from pickup to dropoff, grouped by month and driver, use the following SQL query:
+
+```sql
+SELECT 
+    TO_CHAR(pickup_time, 'YYYY-MM') AS month,
+    d.email AS driver,
+    COUNT(*) AS count_of_trips
+FROM 
+    rides_ride r
+JOIN 
+    rides_user d ON r.id_driver_id = d.id_user
+WHERE 
+    EXTRACT(EPOCH FROM (r.dropoff_time - r.pickup_time)) > 3600
+GROUP BY 
+    TO_CHAR(pickup_time, 'YYYY-MM'), d.email
+ORDER BY 
+    month, driver;

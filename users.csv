@@ -1,5 +1,5 @@
 role,first_name,last_name,email,phone_number,is_staff,is_superadmin
-admin,manny,talaroc,manny@email.com,121212,TRUE,
+admin,manny,talaroc,manny.talaroc@email.com,121212,TRUE,
 rider,John,Doe,john.doe@example.com,1234567890,FALSE,
 driver,Jane,Smith,jane.smith@example.com,987654321,FALSE,
 rider,Alice,Johnson,alice.johnson@example.com,1112223333,FALSE,
