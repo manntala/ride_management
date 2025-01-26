@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.contrib.gis.geos import Point
 
 
 class User(AbstractUser):
@@ -38,6 +39,13 @@ class Ride(models.Model):
     dropoff_latitude = models.FloatField()
     dropoff_longitude = models.FloatField()
     pickup_time = models.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        if self.pickup_latitude and self.pickup_longitude:
+            self.pickup_location = Point(self.pickup_longitude, self.pickup_latitude)
+        if self.dropoff_latitude and self.dropoff_longitude:
+            self.dropoff_location = Point(self.dropoff_longitude, self.dropoff_latitude)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.id_rider.email}"

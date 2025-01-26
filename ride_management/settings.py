@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
-import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,6 +42,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "rest_framework_simplejwt",
+    "django.contrib.gis",
     # Local apps
     "rides",
 ]
@@ -81,7 +81,16 @@ WSGI_APPLICATION = "ride_management.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {"default": dj_database_url.config(default=os.environ.get("DATABASE_URL"))}
+DATABASES = {
+    "default": {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": "ride_management",
+        "USER": "user",
+        "PASSWORD": "password",
+        "HOST": "db",
+        "PORT": "5432",
+    }
+}
 
 
 # Password validation
@@ -145,3 +154,5 @@ SIMPLE_JWT = {
     "USER_ID_FIELD": "id_user",
     "USER_ID_CLAIM": "user_id",
 }
+
+GDAL_LIBRARY_PATH = os.getenv("GDAL_LIBRARY_PATH", "/usr/lib/libgdal.so")

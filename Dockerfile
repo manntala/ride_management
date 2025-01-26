@@ -1,22 +1,21 @@
-# Use the official Python image from the Docker Hub
-FROM python:3.11
+FROM python:3.11-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# Install GDAL dependencies
+RUN apt-get update && apt-get install -y \
+    gdal-bin \
+    libgdal-dev \
+    && apt-get clean
 
-# Set the working directory
-WORKDIR /app
+# Set GDAL_LIBRARY_PATH environment variable
+ENV GDAL_LIBRARY_PATH=/usr/lib/libgdal.so
 
-# Copy the requirements file into the container
-COPY requirements.txt /app/
-
-# Install the dependencies
-RUN pip install --upgrade pip
+# Install Python dependencies
+COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Copy the rest of the application code into the container
-COPY . /app/
+# Copy the application code
+COPY . /app
+WORKDIR /app
 
-# Run the Django development server with migrations
+# Run the application
 CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]

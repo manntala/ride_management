@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:13
+    image: postgis/postgis:13-3.1
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
@@ -22,6 +22,7 @@ services:
     depends_on:
       - db
     environment:
+      - GDAL_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/libgdal.so
       - DJANGO_SETTINGS_MODULE=ride_management.settings
       - DATABASE_URL=postgres://user:password@db:5432/ride_management
 

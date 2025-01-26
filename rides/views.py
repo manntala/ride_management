@@ -1,47 +1,56 @@
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.geos import Point
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Prefetch, F, OuterRef, Subquery, ExpressionWrapper, DurationField
-from django.db.models.functions import Now
-from django.utils import timezone
-from django.utils.timezone import now, make_aware
-from datetime import datetime, timedelta
+from django.db.models import (
+    OuterRef,
+    Subquery,
+    ExpressionWrapper,
+    F,
+    DurationField,
+    Prefetch,
+)
+from datetime import timedelta
+from django.utils.timezone import now
 from .models import User, Ride, RideEvent
 from .serializers import RideSerializer, UserSerializer, RideEventSerializer
 from .permissions import IsAdminUser
 from .filters import RideFilter
-
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
 import logging
+from rest_framework import viewsets
 
 
 class RideViewSet(viewsets.ModelViewSet):
-    queryset = Ride.objects.prefetch_related(
-        'id_rider',
-        'id_driver',
-        Prefetch(
-            'ride_events',
-            queryset=RideEvent.objects.filter(
-                created_at__gte=make_aware(datetime(2022, 1, 1))
-            ),
-        ),
-    ).all()
+    queryset = Ride.objects.all()
     serializer_class = RideSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = RideFilter
-    ordering_fields = ['pickup_time', 'pickup_latitude', 'pickup_longitude']
-    ordering = ['pickup_time']
+    ordering_fields = ["pickup_time", "pickup_latitude", "pickup_longitude"]
+    ordering = ["pickup_time"]
 
     def get_queryset(self):
-        queryset = self.queryset
-        status = self.request.query_params.get('status', None)
-        email = self.request.query_params.get('email', None)
-        sort_by_distance = self.request.query_params.get('sort_by_distance', None)
+        queryset = Ride.objects.select_related(
+            "id_rider", "id_driver"
+        ).prefetch_related(
+            Prefetch(
+                "ride_events",
+                queryset=RideEvent.objects.filter(
+                    created_at__gte=now() - timedelta(days=1)
+                ),
+            )
+        )
 
-        logging.debug(f"Filtering rides with status: {status}, email: {email}, sort_by_distance: {sort_by_distance}")
+        status = self.request.query_params.get("status", None)
+        email = self.request.query_params.get("email", None)
+        sort_by_distance = self.request.query_params.get("sort_by_distance", None)
+
+        logging.debug(
+            f"Filtering rides with status: {status}, email: {email}, sort_by_distance: {sort_by_distance}"
+        )
 
         if status:
             queryset = queryset.filter(status=status)
@@ -49,74 +58,65 @@ class RideViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(id_rider__email=email)
 
         if sort_by_distance:
-            latitude = float(self.request.query_params.get('latitude', 0))
-            longitude = float(self.request.query_params.get('longitude', 0))
+            latitude = float(self.request.query_params.get("latitude", 0))
+            longitude = float(self.request.query_params.get("longitude", 0))
+            user_location = Point(longitude, latitude, srid=4326)
             queryset = queryset.annotate(
-                distance=ExpressionWrapper(
-                    F('pickup_latitude') - latitude + F('pickup_longitude') - longitude,
-                    output_field=FloatField()
-                )
-            ).order_by('distance')
-
-        today = datetime.now().date()
-        queryset = queryset.prefetch_related(
-            Prefetch(
-                'ride_events',
-                queryset=RideEvent.objects.filter(
-                    created_at__gte=today - timedelta(days=1)
-                ),
-                to_attr='todays_ride_events'
-            )
-        )
+                distance=Distance("pickup_location", user_location)
+            ).order_by("distance")
 
         logging.debug(f"Resulting queryset: {queryset.query}")
-
         return queryset
+
+    def perform_create(self, serializer):
+        ride = serializer.save()
+        RideEvent.objects.create(id_ride=ride, description="Ride created")
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         old_status = instance.status
-        new_status = request.data.get('status')
+        new_status = request.data.get("status")
 
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
         if new_status and old_status != new_status:
-            description = f"Status changed from {old_status} to {new_status}"
-            RideEvent.objects.create(
-                id_ride=instance,
-                description=description
-            )
+            description = f"Status changed to {new_status}"
+            RideEvent.objects.create(id_ride=instance, description=description)
+
+            if new_status == "dropoff":
+                instance.distance = instance.pickup_location.distance(
+                    instance.dropoff_location
+                )
+                instance.save()
 
         instance.refresh_from_db()
 
         return Response(serializer.data)
 
-
-
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def trip_durations(self, request):
         queryset = self.get_queryset()
         pickup_events = RideEvent.objects.filter(
-            id_ride=OuterRef('pk'),
-            description='Status changed to pickup'
-        ).order_by('created_at')
+            id_ride=OuterRef("pk"), description="Ride created"
+        ).order_by("created_at")
         dropoff_events = RideEvent.objects.filter(
-            id_ride=OuterRef('pk'),
-            description='Status changed to dropoff'
-        ).order_by('created_at')
+            id_ride=OuterRef("pk"), description="Status changed to dropoff"
+        ).order_by("created_at")
 
         queryset = queryset.annotate(
-            pickup_event_time=Subquery(pickup_events.values('created_at')[:1]),
-            dropoff_event_time=Subquery(dropoff_events.values('created_at')[:1]),
+            pickup_event_time=Subquery(pickup_events.values("created_at")[:1]),
+            dropoff_event_time=Subquery(dropoff_events.values("created_at")[:1]),
             trip_duration=ExpressionWrapper(
-                F('dropoff_event_time') - F('pickup_event_time'),
-                output_field=DurationField()
-            )
-        ).filter(trip_duration__gt=timedelta(hours=1))
+                F("dropoff_event_time") - F("pickup_event_time"),
+                output_field=DurationField(),
+            ),
+        ).filter(pickup_event_time__isnull=False, dropoff_event_time__isnull=False)
 
-        data = queryset.values('id_driver__username', 'trip_duration')
+        data = queryset.values(
+            "id_driver__username", "id_rider__username", "trip_duration"
+        )
         return Response(data)
 
 
